@@ -1,0 +1,1105 @@
+<!DOCTYPE html><html lang="id" class="h-full"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Pick Up Time Shipping Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00D4AA',
+                        'primary-dark': '#00B894',
+                        'dock01': '#FFD700',
+                        'dock02': '#4A90E2'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: 120px repeat(15, 1fr);
+            gap: 1px;
+            background: #e5e7eb;
+        }
+        
+        .night-schedule-grid {
+            display: grid;
+            grid-template-columns: 120px repeat(11, 1fr);
+            gap: 1px;
+            background: #e5e7eb;
+        }
+        
+        .cycle-badge {
+            display: inline-block;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin: 1px;
+            min-width: 24px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .cycle-time {
+            display: block;
+            font-size: 8px;
+            font-weight: 400;
+            margin-top: 2px;
+            opacity: 0.8;
+        }
+        
+        .dock01 {
+            background-color: #FFD700;
+            color: #000;
+        }
+        
+        .dock02 {
+            background-color: #4A90E2;
+            color: #fff;
+        }
+        
+        .conflict-warning {
+            border: 2px solid #ef4444;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { border-color: #ef4444; }
+            50% { border-color: #dc2626; }
+        }
+        
+        .supplier-row {
+            background: #F0FFF4;
+        }
+        
+        .time-header {
+            background: linear-gradient(135deg, #4A90E2, #357ABD);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .supplier-header {
+            background: linear-gradient(135deg, #00D4AA, #00B894);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .form-section {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .notification {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .cycle-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8fafc;
+            dark:bg-gray-700;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .cycle-control-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .conflict-alert {
+            background: linear-gradient(45deg, #fef2f2, #fee2e2);
+            border-left: 4px solid #ef4444;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .dcwa-night-merged {
+            grid-column: span 11;
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            border: 2px dashed #9ca3af;
+        }
+    </style>
+<script src="https://puc.poecdn.net/authenticated_preview_page/syncedState.bd4eeeb8e8e02052ee92.js"></script></head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-full">
+    <!-- Header -->
+    <header class="bg-primary text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <h1 class="text-2xl md:text-3xl font-bold text-center">DASHBOARD PICK UP TIME SHIPPING ENGINE</h1>
+            <p class="text-center text-green-100 mt-2"> Pattern Pick Up Time Shipping Engine</p>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-wrap justify-center space-x-4 sm:space-x-8">
+                <button id="tab-schedule" class="tab-button active py-4 px-3 text-sm sm:text-base font-medium border-b-2 border-primary text-primary">
+                    📊 Dashboard Schedule
+                </button>
+                <button id="tab-sap" class="tab-button py-4 px-3 text-sm sm:text-base font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                    🏭 SAP Syncrum
+                </button>
+                <button id="tab-kap1" class="tab-button py-4 px-3 text-sm sm:text-base font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                    🚛 KAP 1 KMS
+                </button>
+                <button id="tab-kap2" class="tab-button py-4 px-3 text-sm sm:text-base font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                    🚚 KAP 2 Puninar
+                </button>
+                <button id="tab-dcwa" class="tab-button py-4 px-3 text-sm sm:text-base font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                    📦 DCWA SGL
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Notification Area -->
+    <div id="notification" class="hidden mx-4 mt-4 p-4 rounded-lg"></div>
+
+    <!-- Conflict Alert -->
+    <div id="conflict-alert" class="hidden mx-4 mt-4 p-4 rounded-lg conflict-alert">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">⚠️ Schedule Conflict Detected!</h3>
+                <div id="conflict-details" class="mt-2 text-sm text-red-700"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6">
+        <!-- Schedule View Tab -->
+        <div id="content-schedule" class="tab-content">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 mb-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">Monthly Schedule Overview</h2>
+                    <div class="flex flex-wrap items-center space-x-4">
+                        <input type="month" id="schedule-date" class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white">
+                        <div class="flex items-center space-x-4 text-sm">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-4 h-4 bg-yellow-400 rounded"></div>
+                                <span>DOCK 01</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-4 h-4 bg-blue-500 rounded"></div>
+                                <span>DOCK 02</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Day Shift Schedule -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-300">Day Shift (07:00 - 21:00)</h3>
+                    <div class="overflow-x-auto">
+                        <div class="schedule-grid min-w-max">
+                            <!-- Header row -->
+                            <div class="supplier-header p-3 text-center text-sm font-bold">Assy/Truck</div>
+                            <div class="time-header p-2 text-center text-xs">07:00</div>
+                            <div class="time-header p-2 text-center text-xs">08:00</div>
+                            <div class="time-header p-2 text-center text-xs">09:00</div>
+                            <div class="time-header p-2 text-center text-xs">10:00</div>
+                            <div class="time-header p-2 text-center text-xs">11:00</div>
+                            <div class="time-header p-2 text-center text-xs">12:00</div>
+                            <div class="time-header p-2 text-center text-xs">13:00</div>
+                            <div class="time-header p-2 text-center text-xs">14:00</div>
+                            <div class="time-header p-2 text-center text-xs">15:00</div>
+                            <div class="time-header p-2 text-center text-xs">16:00</div>
+                            <div class="time-header p-2 text-center text-xs">17:00</div>
+                            <div class="time-header p-2 text-center text-xs">18:00</div>
+                            <div class="time-header p-2 text-center text-xs">19:00</div>
+                            <div class="time-header p-2 text-center text-xs">20:00</div>
+                            <div class="time-header p-2 text-center text-xs">21:00</div>
+
+                            <!-- SAP Syncrum row -->
+                            <div class="supplier-header p-3 text-center text-xs font-semibold">SAP<br>syncrum</div>
+                            <div id="sap-day-07" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-day-08" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-day-09" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-day-10" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-day-11" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-day-12" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-day-13" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-day-14" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-day-15" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-day-16" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-day-17" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-day-18" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-day-19" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-day-20" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-day-21" class="supplier-row p-2 min-h-12"></div>
+
+                            <!-- KAP 1 KMS row -->
+                            <div class="supplier-header p-3 text-center text-xs font-semibold">KAP 1<br>kms</div>
+                            <div id="kap1-day-07" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-day-08" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-day-09" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-day-10" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-day-11" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-day-12" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-day-13" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-day-14" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-day-15" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-day-16" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-day-17" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-day-18" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-day-19" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-day-20" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-day-21" class="supplier-row p-2 min-h-12"></div>
+
+                            <!-- KAP 2 Puninar row -->
+                            <div class="supplier-header p-3 text-center text-xs font-semibold">KAP 2<br>puninar</div>
+                            <div id="kap2-day-07" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-day-08" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-day-09" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-day-10" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-day-11" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-day-12" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-day-13" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-day-14" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-day-15" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-day-16" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-day-17" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-day-18" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-day-19" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-day-20" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-day-21" class="supplier-row p-2 min-h-12"></div>
+
+                            <!-- DCWA SGL row -->
+                            <div class="supplier-header p-3 text-center text-xs font-semibold">DCWA<br>sgl</div>
+                            <div id="dcwa-day-07" class="supplier-row p-2 min-h-12"></div>
+                            <div id="dcwa-day-08" class="supplier-row p-2 min-h-12"></div>
+                            <div id="dcwa-day-09" class="supplier-row p-2 min-h-12"></div>
+                            <div id="dcwa-day-10" class="supplier-row p-2 min-h-12"></div>
+                            <div id="dcwa-day-11" class="supplier-row p-2 min-h-12"></div>
+                            <div id="dcwa-day-12" class="supplier-row p-2 min-h-12"></div>
+                            <div id="dcwa-day-13" class="supplier-row p-2 min-h-12"></div>
+                            <div id="dcwa-day-14" class="supplier-row p-2 min-h-12"></div>
+                            <div id="dcwa-day-15" class="supplier-row p-2 min-h-12"></div>
+                            <div id="dcwa-day-16" class="supplier-row p-2 min-h-12"></div>
+                            <div id="dcwa-day-17" class="supplier-row p-2 min-h-12"></div>
+                            <div id="dcwa-day-18" class="supplier-row p-2 min-h-12"></div>
+                            <div id="dcwa-day-19" class="supplier-row p-2 min-h-12"></div>
+                            <div id="dcwa-day-20" class="supplier-row p-2 min-h-12"></div>
+                            <div id="dcwa-day-21" class="supplier-row p-2 min-h-12"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Night Shift Schedule -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-300">Night Shift (21:00 - 07:00)</h3>
+                    <div class="overflow-x-auto">
+                        <div class="night-schedule-grid min-w-max">
+                            <!-- Header row -->
+                            <div class="supplier-header p-3 text-center text-sm font-bold">Assy/Truck</div>
+                            <div class="time-header p-2 text-center text-xs">21:00</div>
+                            <div class="time-header p-2 text-center text-xs">22:00</div>
+                            <div class="time-header p-2 text-center text-xs">23:00</div>
+                            <div class="time-header p-2 text-center text-xs">00:00</div>
+                            <div class="time-header p-2 text-center text-xs">01:00</div>
+                            <div class="time-header p-2 text-center text-xs">02:00</div>
+                            <div class="time-header p-2 text-center text-xs">03:00</div>
+                            <div class="time-header p-2 text-center text-xs">04:00</div>
+                            <div class="time-header p-2 text-center text-xs">05:00</div>
+                            <div class="time-header p-2 text-center text-xs">06:00</div>
+                            <div class="time-header p-2 text-center text-xs">07:00</div>
+
+                            <!-- SAP Syncrum row -->
+                            <div class="supplier-header p-3 text-center text-xs font-semibold">SAP<br>syncrum</div>
+                            <div id="sap-night-21" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-night-22" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-night-23" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-night-00" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-night-01" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-night-02" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-night-03" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-night-04" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-night-05" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-night-06" class="supplier-row p-2 min-h-12"></div>
+                            <div id="sap-night-07" class="supplier-row p-2 min-h-12"></div>
+
+                            <!-- KAP 1 KMS row -->
+                            <div class="supplier-header p-3 text-center text-xs font-semibold">KAP 1<br>kms</div>
+                            <div id="kap1-night-21" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-night-22" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-night-23" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-night-00" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-night-01" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-night-02" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-night-03" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-night-04" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-night-05" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-night-06" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap1-night-07" class="supplier-row p-2 min-h-12"></div>
+
+                            <!-- KAP 2 Puninar row -->
+                            <div class="supplier-header p-3 text-center text-xs font-semibold">KAP 2<br>puninar</div>
+                            <div id="kap2-night-21" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-night-22" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-night-23" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-night-00" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-night-01" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-night-02" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-night-03" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-night-04" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-night-05" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-night-06" class="supplier-row p-2 min-h-12"></div>
+                            <div id="kap2-night-07" class="supplier-row p-2 min-h-12"></div>
+
+                            <!-- DCWA SGL row -->
+                            <div class="supplier-header p-3 text-center text-xs font-semibold">DCWA<br>sgl</div>
+                            <div class="dcwa-night-merged p-4 min-h-12 flex items-center justify-center text-sm text-gray-600 dark:text-gray-400 font-medium">
+                                🌙 Not Pick Up at Night Shift
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="mt-6 flex flex-wrap items-center justify-center space-x-6 text-sm">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-6 bg-yellow-400 rounded flex items-center justify-center text-black font-bold text-xs">C1</div>
+                        <span>DOCK 01</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-6 bg-blue-500 rounded flex items-center justify-center text-white font-bold text-xs">C1</div>
+                        <span>DOCK 02</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span>🚛</span>
+                        <span>USE 1 FORKLIFT</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-6 bg-red-400 border-2 border-red-600 rounded flex items-center justify-center text-white font-bold text-xs">⚠️</div>
+                        <span>CONFLICT</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Supplier Form Tabs -->
+        <div id="content-sap" class="tab-content hidden form-section">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">SAP Syncrum - Schedule Input</h2>
+                <form id="sap-form" class="supplier-form" data-supplier="sap">
+                    <div class="grid grid-cols-1 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Schedule Month</label>
+                            <input type="month" name="date" required="" class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 dark:text-white">
+                        </div>
+                    </div>
+                    
+                    <!-- Cycle Control -->
+                    <div class="cycle-controls">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Number of Cycles:</span>
+                        <button type="button" class="cycle-control-btn bg-red-500 hover:bg-red-600 text-white" onclick="adjustCycles('sap', -1)">-</button>
+                        <span id="sap-cycle-count" class="font-bold text-lg min-w-8 text-center">8</span>
+                        <button type="button" class="cycle-control-btn bg-green-500 hover:bg-green-600 text-white" onclick="adjustCycles('sap', 1)">+</button>
+                        <span class="text-xs text-gray-500">(Range: 1-20)</span>
+                    </div>
+                    
+                    <div id="sap-cycles" class="space-y-4 mb-6"></div>
+                    <div class="flex justify-end space-x-4">
+                        <button type="button" class="clear-btn px-6 py-3 text-base font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                            Clear Schedule
+                        </button>
+                        <button type="submit" class="px-6 py-3 text-base font-medium text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors">
+                            Save Schedule
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="content-kap1" class="tab-content hidden form-section">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">KAP 1 KMS - Schedule Input</h2>
+                <form id="kap1-form" class="supplier-form" data-supplier="kap1">
+                    <div class="grid grid-cols-1 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Schedule Month</label>
+                            <input type="month" name="date" required="" class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 dark:text-white">
+                        </div>
+                    </div>
+                    
+                    <!-- Cycle Control -->
+                    <div class="cycle-controls">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Number of Cycles:</span>
+                        <button type="button" class="cycle-control-btn bg-red-500 hover:bg-red-600 text-white" onclick="adjustCycles('kap1', -1)">-</button>
+                        <span id="kap1-cycle-count" class="font-bold text-lg min-w-8 text-center">10</span>
+                        <button type="button" class="cycle-control-btn bg-green-500 hover:bg-green-600 text-white" onclick="adjustCycles('kap1', 1)">+</button>
+                        <span class="text-xs text-gray-500">(Range: 1-20)</span>
+                    </div>
+                    
+                    <div id="kap1-cycles" class="space-y-4 mb-6"></div>
+                    <div class="flex justify-end space-x-4">
+                        <button type="button" class="clear-btn px-6 py-3 text-base font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                            Clear Schedule
+                        </button>
+                        <button type="submit" class="px-6 py-3 text-base font-medium text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors">
+                            Save Schedule
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="content-kap2" class="tab-content hidden form-section">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">KAP 2 Puninar - Schedule Input</h2>
+                <form id="kap2-form" class="supplier-form" data-supplier="kap2">
+                    <div class="grid grid-cols-1 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Schedule Month</label>
+                            <input type="month" name="date" required="" class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 dark:text-white">
+                        </div>
+                    </div>
+                    
+                    <!-- Cycle Control -->
+                    <div class="cycle-controls">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Number of Cycles:</span>
+                        <button type="button" class="cycle-control-btn bg-red-500 hover:bg-red-600 text-white" onclick="adjustCycles('kap2', -1)">-</button>
+                        <span id="kap2-cycle-count" class="font-bold text-lg min-w-8 text-center">4</span>
+                        <button type="button" class="cycle-control-btn bg-green-500 hover:bg-green-600 text-white" onclick="adjustCycles('kap2', 1)">+</button>
+                        <span class="text-xs text-gray-500">(Range: 1-20)</span>
+                    </div>
+                    
+                    <div id="kap2-cycles" class="space-y-4 mb-6"></div>
+                    <div class="flex justify-end space-x-4">
+                        <button type="button" class="clear-btn px-6 py-3 text-base font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                            Clear Schedule
+                        </button>
+                        <button type="submit" class="px-6 py-3 text-base font-medium text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors">
+                            Save Schedule
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="content-dcwa" class="tab-content hidden form-section">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">DCWA SGL - Schedule Input (Day Shift Only)</h2>
+                <form id="dcwa-form" class="supplier-form" data-supplier="dcwa">
+                    <div class="grid grid-cols-1 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Schedule Month</label>
+                            <input type="month" name="date" required="" class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 dark:text-white">
+                        </div>
+                    </div>
+                    
+                    <!-- Cycle Control -->
+                    <div class="cycle-controls">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Number of Cycles:</span>
+                        <button type="button" class="cycle-control-btn bg-red-500 hover:bg-red-600 text-white" onclick="adjustCycles('dcwa', -1)">-</button>
+                        <span id="dcwa-cycle-count" class="font-bold text-lg min-w-8 text-center">3</span>
+                        <button type="button" class="cycle-control-btn bg-green-500 hover:bg-green-600 text-white" onclick="adjustCycles('dcwa', 1)">+</button>
+                        <span class="text-xs text-gray-500">(Range: 1-20)</span>
+                    </div>
+                    
+                    <div id="dcwa-cycles" class="space-y-4 mb-6"></div>
+                    <div class="flex justify-end space-x-4">
+                        <button type="button" class="clear-btn px-6 py-3 text-base font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                            Clear Schedule
+                        </button>
+                        <button type="submit" class="px-6 py-3 text-base font-medium text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors">
+                            Save Schedule
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Custom Modal -->
+    <div id="custom-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
+            <h3 id="modal-title" class="text-lg font-semibold text-gray-800 dark:text-white mb-4"></h3>
+            <p id="modal-message" class="text-gray-600 dark:text-gray-300 mb-6"></p>
+            <div class="flex justify-end space-x-3">
+                <button id="modal-cancel" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">
+                    Cancel
+                </button>
+                <button id="modal-confirm" class="px-4 py-2 bg-primary text-white hover:bg-primary-dark rounded transition-colors">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Global data storage
+        let scheduleData = {};
+        let currentTab = 'schedule';
+
+        // Generate time slots with 5-minute intervals for 24 hours
+        function generateTimeSlots() {
+            const slots = [];
+            for (let hour = 0; hour < 24; hour++) {
+                for (let minute = 0; minute < 60; minute += 5) {
+                    const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                    slots.push(timeStr);
+                }
+            }
+            return slots;
+        }
+
+        const allTimeSlots = generateTimeSlots();
+        const dayTimeSlots = ['07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'];
+        const nightTimeSlots = ['21', '22', '23', '00', '01', '02', '03', '04', '05', '06', '07'];
+
+        // Supplier configuration with dynamic cycle counts
+        const supplierConfig = {
+            sap: { name: 'SAP Syncrum', cycles: 8, dayOnly: false },
+            kap1: { name: 'KAP 1 KMS', cycles: 10, dayOnly: false },
+            kap2: { name: 'KAP 2 Puninar', cycles: 4, dayOnly: false },
+            dcwa: { name: 'DCWA SGL', cycles: 3, dayOnly: true }
+        };
+
+        // Function to determine if time is day or night shift
+        function getShiftFromTime(timeStr) {
+            const [hour, minute] = timeStr.split(':').map(Number);
+            const totalMinutes = hour * 60 + minute;
+            const dayStart = 7 * 60; // 07:00
+            const dayEnd = 21 * 60; // 21:00
+            
+            return (totalMinutes >= dayStart && totalMinutes < dayEnd) ? 'day' : 'night';
+        }
+
+        // Function to calculate 30-minute end time
+        function getEndTime(startTime) {
+            const [hour, minute] = startTime.split(':').map(Number);
+            const totalMinutes = hour * 60 + minute + 30;
+            const endHour = Math.floor(totalMinutes / 60) % 24;
+            const endMinute = totalMinutes % 60;
+            return `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
+        }
+
+        // Function to check time range overlap
+        function checkTimeOverlap(time1, time2) {
+            const [h1, m1] = time1.split(':').map(Number);
+            const [h2, m2] = time2.split(':').map(Number);
+            
+            const start1 = h1 * 60 + m1;
+            const end1 = start1 + 30;
+            const start2 = h2 * 60 + m2;
+            const end2 = start2 + 30;
+            
+            return (start1 < end2) && (start2 < end1);
+        }
+
+        // Function to detect conflicts
+        function detectConflicts(date) {
+            const conflicts = [];
+            const dockSchedules = { dock01: [], dock02: [] };
+            
+            // Collect all schedules for the date
+            Object.keys(supplierConfig).forEach(supplier => {
+                ['day', 'night'].forEach(shift => {
+                    const scheduleKey = `${date}_${supplier}_${shift}`;
+                    if (scheduleData[scheduleKey]) {
+                        scheduleData[scheduleKey].forEach(cycle => {
+                            dockSchedules[cycle.dock].push({
+                                supplier,
+                                shift,
+                                cycle: cycle.cycle,
+                                time: cycle.time,
+                                dock: cycle.dock
+                            });
+                        });
+                    }
+                });
+            });
+            
+            // Check for conflicts in each dock
+            Object.keys(dockSchedules).forEach(dock => {
+                const schedules = dockSchedules[dock];
+                for (let i = 0; i < schedules.length; i++) {
+                    for (let j = i + 1; j < schedules.length; j++) {
+                        if (checkTimeOverlap(schedules[i].time, schedules[j].time)) {
+                            conflicts.push({
+                                dock,
+                                schedule1: schedules[i],
+                                schedule2: schedules[j]
+                            });
+                        }
+                    }
+                }
+            });
+            
+            return conflicts;
+        }
+
+        // Function to display conflicts
+        function displayConflicts(conflicts) {
+            const alertElement = document.getElementById('conflict-alert');
+            const detailsElement = document.getElementById('conflict-details');
+            
+            if (conflicts.length > 0) {
+                const conflictMessages = conflicts.map(conflict => {
+                    const { dock, schedule1, schedule2 } = conflict;
+                    const s1End = getEndTime(schedule1.time);
+                    const s2End = getEndTime(schedule2.time);
+                    return `${dock.toUpperCase()}: ${supplierConfig[schedule1.supplier].name} C${schedule1.cycle} (${schedule1.time}-${s1End}) overlaps with ${supplierConfig[schedule2.supplier].name} C${schedule2.cycle} (${schedule2.time}-${s2End})`;
+                });
+                
+                detailsElement.innerHTML = conflictMessages.map(msg => `<div class="mb-1">• ${msg}</div>`).join('');
+                alertElement.classList.remove('hidden');
+            } else {
+                alertElement.classList.add('hidden');
+            }
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            initializeDateInputs();
+            initializeEventListeners();
+            generateCycleForms();
+            loadScheduleForToday();
+        }
+
+        // Custom modal functions
+        function showModal(title, message, onConfirm) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('custom-modal').classList.remove('hidden');
+            
+            const confirmBtn = document.getElementById('modal-confirm');
+            const cancelBtn = document.getElementById('modal-cancel');
+            
+            const handleConfirm = () => {
+                document.getElementById('custom-modal').classList.add('hidden');
+                if (onConfirm) onConfirm();
+                confirmBtn.removeEventListener('click', handleConfirm);
+                cancelBtn.removeEventListener('click', handleCancel);
+            };
+            
+            const handleCancel = () => {
+                document.getElementById('custom-modal').classList.add('hidden');
+                confirmBtn.removeEventListener('click', handleConfirm);
+                cancelBtn.removeEventListener('click', handleCancel);
+            };
+            
+            confirmBtn.addEventListener('click', handleConfirm);
+            cancelBtn.addEventListener('click', handleCancel);
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.className = `notification mx-4 mt-4 p-4 rounded-lg ${
+                type === 'success' ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100' :
+                type === 'error' ? 'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-100' :
+                type === 'warning' ? 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100' :
+                'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100'
+            }`;
+            notification.textContent = message;
+            notification.classList.remove('hidden');
+            
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Initialize date inputs
+        function initializeDateInputs() {
+            const today = new Date();
+            const currentMonth = today.toISOString().slice(0, 7); // YYYY-MM format
+            document.getElementById('schedule-date').value = currentMonth;
+            
+            document.querySelectorAll('input[name="date"]').forEach(input => {
+                input.value = currentMonth;
+            });
+        }
+
+        // Initialize event listeners
+        function initializeEventListeners() {
+            // Tab switching
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabName = this.id.replace('tab-', '');
+                    switchTab(tabName);
+                });
+            });
+
+            // Schedule date change
+            document.getElementById('schedule-date').addEventListener('change', function() {
+                loadScheduleForDate(this.value);
+            });
+
+            // Form submissions
+            document.querySelectorAll('.supplier-form').forEach(form => {
+                form.addEventListener('submit', handleFormSubmit);
+            });
+
+            // Clear buttons
+            document.querySelectorAll('.clear-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const form = this.closest('form');
+                    const supplier = form.dataset.supplier;
+                    clearSupplierSchedule(supplier);
+                });
+            });
+        }
+
+        // Adjust cycle count for a supplier
+        function adjustCycles(supplier, delta) {
+            const config = supplierConfig[supplier];
+            const newCycles = Math.max(1, Math.min(20, config.cycles + delta));
+            
+            if (newCycles !== config.cycles) {
+                config.cycles = newCycles;
+                document.getElementById(`${supplier}-cycle-count`).textContent = newCycles;
+                generateCycleInputs(supplier);
+            }
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active', 'border-primary', 'text-primary');
+                button.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+            });
+            
+            document.getElementById(`tab-${tabName}`).classList.add('active', 'border-primary', 'text-primary');
+            document.getElementById(`tab-${tabName}`).classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+
+            // Show/hide content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+            currentTab = tabName;
+
+            // Refresh schedule if viewing schedule tab
+            if (tabName === 'schedule') {
+                const selectedDate = document.getElementById('schedule-date').value;
+                loadScheduleForDate(selectedDate);
+            }
+        }
+
+        // Generate cycle forms for all suppliers
+        function generateCycleForms() {
+            Object.keys(supplierConfig).forEach(supplier => {
+                generateCycleInputs(supplier);
+            });
+        }
+
+        // Generate cycle inputs for a specific supplier
+        function generateCycleInputs(supplier) {
+            const container = document.getElementById(`${supplier}-cycles`);
+            const config = supplierConfig[supplier];
+            
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= config.cycles; i++) {
+                const cycleDiv = document.createElement('div');
+                cycleDiv.className = 'bg-gray-50 dark:bg-gray-700 rounded-lg p-4';
+                cycleDiv.innerHTML = `
+                    <h4 class="font-semibold text-gray-800 dark:text-white mb-3">Cycle ${i} (C${i})</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Time Slot (5-min intervals)</label>
+                            <select name="cycle_${i}_time" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 dark:text-white">
+                                <option value="">Select Time</option>
+                                ${allTimeSlots.map(time => {
+                                    // Skip night shift times for DCWA
+                                    if (config.dayOnly && getShiftFromTime(time) === 'night') {
+                                        return '';
+                                    }
+                                    return `<option value="${time}">${time}</option>`;
+                                }).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Dock</label>
+                            <select name="cycle_${i}_dock" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 dark:text-white">
+                                <option value="">Select Dock</option>
+                                <option value="dock01">DOCK 01</option>
+                                <option value="dock02">DOCK 02</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-xs" id="cycle_${i}_info">
+                        <div id="cycle_${i}_shift_indicator"></div>
+                        <div id="cycle_${i}_duration" class="font-medium mt-1"></div>
+                    </div>
+                `;
+                container.appendChild(cycleDiv);
+                
+                // Add time change listener to show shift indicator and duration
+                const timeSelect = cycleDiv.querySelector(`select[name="cycle_${i}_time"]`);
+                timeSelect.addEventListener('change', function() {
+                    const shiftIndicator = document.getElementById(`cycle_${i}_shift_indicator`);
+                    const durationElement = document.getElementById(`cycle_${i}_duration`);
+                    
+                    if (this.value) {
+                        const shift = getShiftFromTime(this.value);
+                        const endTime = getEndTime(this.value);
+                        
+                        shiftIndicator.textContent = `${shift === 'day' ? '☀️ Day Shift' : '🌙 Night Shift'} (Auto-detected)`;
+                        shiftIndicator.className = `text-xs ${shift === 'day' ? 'text-blue-600' : 'text-purple-600'}`;
+                        
+                        durationElement.textContent = `📅 Duration: ${this.value} - ${endTime} (30 minutes)`;
+                        durationElement.className = 'text-xs font-medium mt-1 text-green-600';
+                    } else {
+                        shiftIndicator.textContent = '';
+                        durationElement.textContent = '';
+                    }
+                });
+            }
+        }
+
+        // Handle form submission
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const supplier = form.dataset.supplier;
+            const formData = new FormData(form);
+            const date = formData.get('date');
+            
+            if (!date) {
+                showNotification('Please select a month', 'error');
+                return;
+            }
+
+            // Group cycles by shift automatically
+            const daySchedule = [];
+            const nightSchedule = [];
+            
+            const config = supplierConfig[supplier];
+            for (let i = 1; i <= config.cycles; i++) {
+                const time = formData.get(`cycle_${i}_time`);
+                const dock = formData.get(`cycle_${i}_dock`);
+                
+                if (time && dock) {
+                    const shift = getShiftFromTime(time);
+                    const cycle = {
+                        cycle: i,
+                        time: time,
+                        dock: dock
+                    };
+                    
+                    if (shift === 'day') {
+                        daySchedule.push(cycle);
+                    } else {
+                        nightSchedule.push(cycle);
+                    }
+                }
+            }
+
+            // Save schedules
+            if (daySchedule.length > 0) {
+                scheduleData[`${date}_${supplier}_day`] = daySchedule;
+            }
+            if (nightSchedule.length > 0) {
+                scheduleData[`${date}_${supplier}_night`] = nightSchedule;
+            }
+            
+            // Check for conflicts
+            const conflicts = detectConflicts(date);
+            if (conflicts.length > 0) {
+                showNotification(`⚠️ Schedule saved with ${conflicts.length} conflict(s)! Check the dashboard for details.`, 'warning');
+            } else {
+                showNotification(`✅ Schedule saved successfully for ${supplierConfig[supplier].name} (${daySchedule.length} day cycles, ${nightSchedule.length} night cycles)`, 'success');
+            }
+            
+            // Auto-switch to dashboard
+            setTimeout(() => {
+                switchTab('schedule');
+                // Update the schedule date to the saved date
+                document.getElementById('schedule-date').value = date;
+                loadScheduleForDate(date);
+            }, 1000);
+
+            // Clear form
+            form.reset();
+            const today = new Date();
+            const currentMonth = today.toISOString().slice(0, 7);
+            form.querySelector('input[name="date"]').value = currentMonth;
+            
+            // Clear indicators
+            document.querySelectorAll(`#${supplier}-cycles .text-xs`).forEach(el => {
+                if (el.id && (el.id.includes('shift_indicator') || el.id.includes('duration'))) {
+                    el.textContent = '';
+                }
+            });
+        }
+
+        // Clear supplier schedule
+        function clearSupplierSchedule(supplier) {
+            showModal(
+                'Clear Schedule',
+                `Are you sure you want to clear the schedule for ${supplierConfig[supplier].name}?`,
+                () => {
+                    const form = document.getElementById(`${supplier}-form`);
+                    const date = form.querySelector('input[name="date"]').value;
+                    
+                    if (date) {
+                        // Clear both day and night schedules
+                        delete scheduleData[`${date}_${supplier}_day`];
+                        delete scheduleData[`${date}_${supplier}_night`];
+                        showNotification('Schedule cleared', 'success');
+                        
+                        // Refresh the schedule view
+                        const currentViewDate = document.getElementById('schedule-date').value;
+                        if (date === currentViewDate) {
+                            loadScheduleForDate(date);
+                        }
+                    }
+                    
+                    form.reset();
+                    const today = new Date();
+                    const currentMonth = today.toISOString().slice(0, 7);
+                    form.querySelector('input[name="date"]').value = currentMonth;
+                    
+                    // Clear indicators
+                    document.querySelectorAll(`#${supplier}-cycles .text-xs`).forEach(el => {
+                        if (el.id && (el.id.includes('shift_indicator') || el.id.includes('duration'))) {
+                            el.textContent = '';
+                        }
+                    });
+                }
+            );
+        }
+
+        // Load schedule for today
+        function loadScheduleForToday() {
+            const today = new Date();
+            const currentMonth = today.toISOString().slice(0, 7);
+            loadScheduleForDate(currentMonth);
+        }
+
+        // Load schedule for specific date
+        function loadScheduleForDate(date) {
+            // Clear all schedule cells
+            clearScheduleDisplay();
+            
+            // Load each supplier's schedule
+            Object.keys(supplierConfig).forEach(supplier => {
+                ['day', 'night'].forEach(shift => {
+                    const scheduleKey = `${date}_${supplier}_${shift}`;
+                    if (scheduleData[scheduleKey]) {
+                        displaySchedule(supplier, shift, scheduleData[scheduleKey]);
+                    }
+                });
+            });
+            
+            // Check and display conflicts
+            const conflicts = detectConflicts(date);
+            displayConflicts(conflicts);
+        }
+
+        // Clear schedule display
+        function clearScheduleDisplay() {
+            // Clear day shift
+            dayTimeSlots.forEach(time => {
+                Object.keys(supplierConfig).forEach(supplier => {
+                    const cell = document.getElementById(`${supplier}-day-${time}`);
+                    if (cell) {
+                        cell.innerHTML = '';
+                        cell.classList.remove('conflict-warning');
+                    }
+                });
+            });
+            
+            // Clear night shift
+            nightTimeSlots.forEach(time => {
+                Object.keys(supplierConfig).forEach(supplier => {
+                    if (supplier === 'dcwa') return; // DCWA doesn't work night shift
+                    const cell = document.getElementById(`${supplier}-night-${time}`);
+                    if (cell) {
+                        cell.innerHTML = '';
+                        cell.classList.remove('conflict-warning');
+                    }
+                });
+            });
+            
+            // Clear conflict alert
+            document.getElementById('conflict-alert').classList.add('hidden');
+        }
+
+        // Display schedule for supplier
+        function displaySchedule(supplier, shift, cycles) {
+            cycles.forEach(cycle => {
+                // Find the appropriate cell based on the hour of the time
+                const hour = cycle.time.split(':')[0];
+                const cellId = `${supplier}-${shift}-${hour}`;
+                const cell = document.getElementById(cellId);
+                
+                if (cell) {
+                    const cycleSpan = document.createElement('span');
+                    cycleSpan.className = `cycle-badge ${cycle.dock}`;
+                    
+                    const endTime = getEndTime(cycle.time);
+                    cycleSpan.innerHTML = `
+                        C${cycle.cycle}
+                        <span class="cycle-time">${cycle.time}-${endTime}</span>
+                    `;
+                    cycleSpan.title = `Cycle ${cycle.cycle} at ${cycle.time}-${endTime} (${cycle.dock.toUpperCase()})`;
+                    cell.appendChild(cycleSpan);
+                }
+            });
+        }
+    </script>
+
+</body></html>
